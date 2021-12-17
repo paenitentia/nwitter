@@ -5,27 +5,36 @@ import { authService } from "../fbase";
 function App() {
 
   const [init, setInit] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userObj, setUserObj] = useState(null);
 
 
   useEffect(() => {
     authService.onAuthStateChanged((user) => {
       if(user) {
-        setIsLoggedIn(true);
-        setUserObj(user);
+        setUserObj({
+          displayName: user.displayName,
+          uid: user.uid,
+        });
       } else {
-        setIsLoggedIn(false);
+        //setUserObj(null);
       }
       setInit(true);
     });
   }, []);
-  //console.log(authService.currentUser);
+  
+  const refreshUser = () => {
+    //const user = authService.currentUser;
+    setUserObj({
+      uid: authService.currentUser.uid,
+      displayName: authService.currentUser.displayName,
+    });
+    //setUserObj(user);
+  }
   
   return (
       <div>
-      {init ? <AppRouter isLoggedIn={isLoggedIn} userObj={userObj} /> : "Initializing..."}
-      <footer>&copy; {new Date().getFullYear()} Nwitter</footer>
+      {init ? <AppRouter isLoggedIn={Boolean(userObj)} userObj={userObj} refreshUser={refreshUser} /> : "Initializing..."}
+      <footer className="footer">&copy; {new Date().getFullYear()} Nwitter</footer> 
       </div>
     );
 }

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { dbService } from "../fbase";
-import { addDoc, collection, doc, getDocs, onSnapshot, query } from "firebase/firestore"
+import { collection, onSnapshot, query } from "firebase/firestore"
+import Nweet from "../components/Nweet";
+import NweetFactory from "../components/NweetFactory";
 
 const Home = ({ userObj }) => {
-    const [nweet, setNweet] = useState("");
+    
     const [nweets, setNweets] = useState([]);
-
+    
     
     useEffect(() => {
-        const q = query(collection(dbService, "nweets").orderBy("createdAt", "desc"));
+        const q = query(collection(dbService, "nweets"));
         onSnapshot(q, (snapshot) => {
             const nweetArr = snapshot.docs.map((doc) => ({
                 id: doc.id,
@@ -18,37 +20,14 @@ const Home = ({ userObj }) => {
         });
     }, []);
 
-    const onSubmit = async (event) => {
-        event.preventDefault();
-        try {
-            const data = await addDoc(collection(dbService, "nweets"), {
-                text: nweet,
-                createdAt: Date.now(),
-                creatorId: userObj.uid,
-            });
-        } catch(error) {
-            console.error(error);
-        }
-
-        setNweet("");
-    };
-
-    const onChange = (event) => {
-        const { target: { value }} = event;
-        setNweet(value);
-    }
     return (
-        <div>
-            <form>
-                <input type="text" value={nweet} onChange={onChange} placeholder="What's on your mind?" maxlength={120} />
-                <input type="submit" value="Nweet" />
-            </form>
-        
-            <div>
+        <div className="container">
+            <NweetFactory userObj={userObj} />
+
+            <div style={{ marginTop: 30 }}>
                 {nweets.map((nweet) => (
-                <div key={nweet.id}>
-                    <h4>{nweet.text}</h4>
-                </div>))}
+                    <Nweet key={nweet.id} nweetObj={nweet} isOwner={nweet.creatorId === userObj.uid} />
+                ))}
             </div>
         </div>
     );
